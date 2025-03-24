@@ -6,6 +6,7 @@ import sys
 import time
 from pathlib import Path
 from collections import defaultdict
+import itertools
 
 def build_tree_structure(file_data):
     """Builds a tree structure from file paths."""
@@ -58,12 +59,12 @@ def safe_rmtree(path):
         os.chmod(path, 0o777)
         func(path)
 
-    for _ in range(5):  # Retry up to 5 times
+    for _ in range(5):
         try:
             shutil.rmtree(path, onerror=remove_readonly)
             break
         except PermissionError:
-            time.sleep(1)  # Wait briefly before retrying
+            time.sleep(1)
     else:
         print(f"Warning: Could not fully remove temporary directory {path}", file=sys.stderr)
 
@@ -85,6 +86,7 @@ def get_language_labels(lang):
             "user_contrib_title": "Projects Contributed Summary",
             "user_projects_title": "User Projects Summary",
             "user_full_title": "Full User Summary",
+            "user_activity_title": "Activity Heatmap",
             "metrics": {
                 "total_lines": "Total Lines of Code",
                 "total_commits": "Total Commits",
@@ -95,7 +97,8 @@ def get_language_labels(lang):
             "timeline_headers": ["Date", "Author", "Message", "Changes"],
             "contributors_headers": ["Contributor", "GitHub Link", "Lines of Code", "Commits"],
             "languages_headers": ["Language", "Lines of Code", "Percentage"],
-            "frameworks_headers": ["Framework", "Indicator File"]
+            "frameworks_headers": ["Framework", "Indicator File"],
+            "activity_headers": ["Month", "Commits"]
         },
         "TR": {
             "repo_info_title": "Depo Bilgileri",
@@ -108,6 +111,7 @@ def get_language_labels(lang):
             "user_contrib_title": "Katkı Sağlanan Projeler Özeti",
             "user_projects_title": "Kullanıcı Projeleri Özeti",
             "user_full_title": "Tam Kullanıcı Özeti",
+            "user_activity_title": "Etkinlik Isı Haritası",
             "metrics": {
                 "total_lines": "Toplam Kod Satırı",
                 "total_commits": "Toplam Commit",
@@ -118,26 +122,128 @@ def get_language_labels(lang):
             "timeline_headers": ["Tarih", "Yazar", "Mesaj", "Değişiklikler"],
             "contributors_headers": ["Katkıda Bulunan", "GitHub Bağlantısı", "Kod Satırları", "Commit Sayısı"],
             "languages_headers": ["Dil", "Kod Satırları", "Yüzde"],
-            "frameworks_headers": ["Çerçeve", "Gösterge Dosyası"]
+            "frameworks_headers": ["Çerçeve", "Gösterge Dosyası"],
+            "activity_headers": ["Ay", "Commit Sayısı"]
+        },
+        "IT": {
+            "repo_info_title": "Informazioni sul Repository",
+            "folder_structure_title": "Struttura delle Cartelle",
+            "timeline_title": "Cronologia di Sviluppo",
+            "full_report_title": "Rapporto Completo del Repository",
+            "contributors_title": "Analisi dei Contributori",
+            "languages_title": "Linguaggi di Programmazione",
+            "frameworks_title": "Framework Utilizzati",
+            "user_contrib_title": "Riepilogo Progetti Contribuiti",
+            "user_projects_title": "Riepilogo Progetti Utente",
+            "user_full_title": "Riepilogo Completo Utente",
+            "user_activity_title": "Mappa di Attività",
+            "metrics": {
+                "total_lines": "Linee di Codice Totali",
+                "total_commits": "Commit Totali",
+                "contributors": "Contributori",
+                "creation_date": "Data di Creazione",
+                "last_update": "Ultimo Aggiornamento"
+            },
+            "timeline_headers": ["Data", "Autore", "Messaggio", "Modifiche"],
+            "contributors_headers": ["Contributore", "Link GitHub", "Linee di Codice", "Commit"],
+            "languages_headers": ["Linguaggio", "Linee di Codice", "Percentuale"],
+            "frameworks_headers": ["Framework", "File Indicatore"],
+            "activity_headers": ["Mese", "Commit"]
+        },
+        "FR": {
+            "repo_info_title": "Informations sur le Dépôt",
+            "folder_structure_title": "Structure des Dossiers",
+            "timeline_title": "Chronologie de Développement",
+            "full_report_title": "Rapport Complet du Dépôt",
+            "contributors_title": "Analyse des Contributeurs",
+            "languages_title": "Langages de Programmation",
+            "frameworks_title": "Frameworks Utilisés",
+            "user_contrib_title": "Résumé des Projets Contribués",
+            "user_projects_title": "Résumé des Projets Utilisateur",
+            "user_full_title": "Résumé Complet Utilisateur",
+            "user_activity_title": "Carte de Chaleur d'Activité",
+            "metrics": {
+                "total_lines": "Lignes de Code Totales",
+                "total_commits": "Commits Totaux",
+                "contributors": "Contributeurs",
+                "creation_date": "Date de Création",
+                "last_update": "Dernière Mise à Jour"
+            },
+            "timeline_headers": ["Date", "Auteur", "Message", "Changements"],
+            "contributors_headers": ["Contributeur", "Lien GitHub", "Lignes de Code", "Commits"],
+            "languages_headers": ["Langage", "Lignes de Code", "Pourcentage"],
+            "frameworks_headers": ["Framework", "Fichier Indicateur"],
+            "activity_headers": ["Mois", "Commits"]
+        },
+        "ES": {
+            "repo_info_title": "Información del Repositorio",
+            "folder_structure_title": "Estructura de Carpetas",
+            "timeline_title": "Línea de Tiempo de Desarrollo",
+            "full_report_title": "Informe Completo del Repositorio",
+            "contributors_title": "Análisis de Contribuidores",
+            "languages_title": "Lenguajes de Programación",
+            "frameworks_title": "Frameworks Utilizados",
+            "user_contrib_title": "Resumen de Proyectos Contribuidos",
+            "user_projects_title": "Resumen de Proyectos del Usuario",
+            "user_full_title": "Resumen Completo del Usuario",
+            "user_activity_title": "Mapa de Calor de Actividad",
+            "metrics": {
+                "total_lines": "Líneas de Código Totales",
+                "total_commits": "Commits Totales",
+                "contributors": "Contribuidores",
+                "creation_date": "Fecha de Creación",
+                "last_update": "Última Actualización"
+            },
+            "timeline_headers": ["Fecha", "Autor", "Mensaje", "Cambios"],
+            "contributors_headers": ["Contribuidor", "Enlace GitHub", "Líneas de Código", "Commits"],
+            "languages_headers": ["Lenguaje", "Líneas de Código", "Porcentaje"],
+            "frameworks_headers": ["Framework", "Archivo Indicador"],
+            "activity_headers": ["Mes", "Commits"]
+        },
+        "DE": {
+            "repo_info_title": "Repository-Informationen",
+            "folder_structure_title": "Ordnerstruktur",
+            "timeline_title": "Entwicklungszeitleiste",
+            "full_report_title": "Vollständiger Repository-Bericht",
+            "contributors_title": "Mitwirkenden-Analyse",
+            "languages_title": "Programmiersprachen",
+            "frameworks_title": "Verwendete Frameworks",
+            "user_contrib_title": "Zusammenfassung der Beitragsprojekte",
+            "user_projects_title": "Zusammenfassung der Benutzerprojekte",
+            "user_full_title": "Vollständige Benutzerzusammenfassung",
+            "user_activity_title": "Aktivitäts-Wärmekarte",
+            "metrics": {
+                "total_lines": "Gesamte Codezeilen",
+                "total_commits": "Gesamte Commits",
+                "contributors": "Mitwirkende",
+                "creation_date": "Erstellungsdatum",
+                "last_update": "Letztes Update"
+            },
+            "timeline_headers": ["Datum", "Autor", "Nachricht", "Änderungen"],
+            "contributors_headers": ["Mitwirkender", "GitHub-Link", "Codezeilen", "Commits"],
+            "languages_headers": ["Sprache", "Codezeilen", "Prozentsatz"],
+            "frameworks_headers": ["Framework", "Indikator-Datei"],
+            "activity_headers": ["Monat", "Commits"]
         }
-        # Add IT, FR, ES, DE translations similarly if needed (omitted for brevity)
     }
-    return labels.get(lang.upper(), labels["EN"])  # Default to English
+    return labels.get(lang.upper(), labels["EN"])
 
-def print_progress(step, total_steps, message):
-    """Prints progress with percentage and a simple progress bar."""
+def print_progress(step, total_steps, message, spinner_cycle):
+    """Prints progress with percentage, progress bar, and spinner."""
     percentage = (step / total_steps) * 100
     bar_length = 20
     filled = int(bar_length * step // total_steps)
     bar = '█' * filled + ' ' * (bar_length - filled)
-    sys.stdout.write(f"\r{message} [{bar}] {percentage:.1f}%")
+    spinner = next(spinner_cycle)
+    sys.stdout.write(f"\r{message} {spinner} [{bar}] {percentage:.1f}%")
     sys.stdout.flush()
 
 def detect_languages(file_data):
     """Detects programming languages based on file extensions."""
     language_map = {
         '.py': 'Python', '.js': 'JavaScript', '.java': 'Java', '.cpp': 'C++', '.c': 'C',
-        '.cs': 'C#', '.rb': 'Ruby', '.php': 'PHP', '.go': 'Go', '.rs': 'Rust'
+        '.cs': 'C#', '.rb': 'Ruby', '.php': 'PHP', '.go': 'Go', '.rs': 'Rust',
+        '.ts': 'TypeScript', '.html': 'HTML', '.css': 'CSS', '.swift': 'Swift'
     }
     languages = defaultdict(int)
     total_lines = sum(data['lines'] for data in file_data.values())
@@ -159,13 +265,16 @@ def detect_frameworks(tracked_files):
             frameworks['Maven (Java)'] = 'pom.xml'
         elif file_path == 'Gemfile':
             frameworks['Ruby on Rails'] = 'Gemfile'
+        elif file_path == 'Cargo.toml':
+            frameworks['Rust (Cargo)'] = 'Cargo.toml'
     return frameworks
 
 def analyze_repo(repo_url, lang="EN"):
     """Analyzes the GitHub repository and generates Markdown reports."""
     total_steps = 10
     step = 0
-    print_progress(step, total_steps, "📋 Starting repository analysis...")
+    spinner = itertools.cycle(['|', '/', '-', '\\'])
+    print_progress(step, total_steps, "📋 Starting repository analysis", spinner)
     step += 1
     temp_dir = tempfile.mkdtemp()
     repo_name = get_repo_name(repo_url)
@@ -175,25 +284,22 @@ def analyze_repo(repo_url, lang="EN"):
     try:
         labels = get_language_labels(lang)
 
-        print_progress(step, total_steps, "🔗 Validating repository URL...")
+        print_progress(step, total_steps, "🔗 Validating repository URL", spinner)
         step += 1
-        if repo_url.startswith('https://github.com/'):
-            clone_url = repo_url + '.git' if not repo_url.endswith('.git') else repo_url
-        elif repo_url.startswith('git@github.com:'):
-            clone_url = repo_url
-        else:
+        if not (repo_url.startswith('https://github.com/') or repo_url.startswith('git@github.com:')):
             raise ValueError("Invalid GitHub URL. Use HTTPS (https://github.com/...) or SSH (git@github.com:...) format.")
+        clone_url = repo_url + '.git' if repo_url.startswith('https://') and not repo_url.endswith('.git') else repo_url
 
-        print_progress(step, total_steps, "📥 Cloning repository...")
+        print_progress(step, total_steps, "📥 Cloning repository", spinner)
         step += 1
         git.Repo.clone_from(clone_url, temp_dir)
         repo = git.Repo(temp_dir)
 
-        print_progress(step, total_steps, "📄 Collecting tracked files...")
+        print_progress(step, total_steps, "📄 Collecting tracked files", spinner)
         step += 1
         tracked_files = [f for f in repo.git.ls_files().split('\n') if f]
 
-        print_progress(step, total_steps, "📊 Analyzing files and commits...")
+        print_progress(step, total_steps, "📊 Analyzing files and commits", spinner)
         step += 1
         file_data = {}
         for file_path in tracked_files:
@@ -202,23 +308,22 @@ def analyze_repo(repo_url, lang="EN"):
             commits = set(repo.git.log('--follow', '--pretty=format:%H', file_path).split('\n'))
             file_data[file_path] = {'lines': lines, 'commits': commits}
 
-        print_progress(step, total_steps, "🌳 Building folder structure...")
+        print_progress(step, total_steps, "🌳 Building folder structure", spinner)
         step += 1
         tree = build_tree_structure(file_data)
         aggregate_tree(tree)
 
-        print_progress(step, total_steps, "⏳ Fetching commit history...")
+        print_progress(step, total_steps, "⏳ Fetching commit history", spinner)
         step += 1
         commits = list(repo.iter_commits())
         commits.reverse()
         authors = set(commit.author.name for commit in commits)
 
-        print_progress(step, total_steps, "🔍 Analyzing languages and frameworks...")
+        print_progress(step, total_steps, "🔍 Analyzing languages and frameworks", spinner)
         step += 1
         languages, total_lines = detect_languages(file_data)
         frameworks = detect_frameworks(tracked_files)
 
-        # Contributor analysis (separate from repo_info)
         contributor_data = defaultdict(lambda: {'commits': [], 'lines_added': 0, 'lines_removed': 0})
         for commit in commits:
             author = commit.author.name
@@ -232,12 +337,9 @@ def analyze_repo(repo_url, lang="EN"):
             contributor_data[author]['lines_added'] += stats['insertions']
             contributor_data[author]['lines_removed'] += stats['deletions']
 
-        signature = (
-            "\n---\n"
-            f"Generated with [Q-Git](https://github.com/QLineTech/Q-Git) on {time.strftime('%Y-%m-%d %H:%M:%S')}"
-        )
+        signature = f"\n---\nGenerated with [Q-Git](https://github.com/QLineTech/Q-Git) on {time.strftime('%Y-%m-%d %H:%M:%S')}"
 
-        print_progress(step, total_steps, "📝 Generating repo_info.md...")
+        print_progress(step, total_steps, "📝 Generating reports", spinner)
         step += 1
         with open(report_dir / 'repo_info.md', 'w', encoding='utf-8') as f:
             f.write(f"# {labels['repo_info_title']}\n\n")
@@ -299,60 +401,64 @@ def analyze_repo(repo_url, lang="EN"):
                 f.write("\n")
             f.write(signature)
 
-        print_progress(step, total_steps, "📝 Generating full_report.md...")
-        step += 1
         with open(report_dir / 'full_report.md', 'w', encoding='utf-8') as f:
             f.write(f"# {labels['full_report_title']}\n\n")
             f.write("![Q-Git Badge](https://img.shields.io/badge/Q--Git-Analyzed-blue?style=flat-square)\n\n")
             f.write(f"## {labels['repo_info_title']}\n\n")
             with open(report_dir / 'repo_info.md', 'r', encoding='utf-8') as repo_file:
-                f.write(repo_file.read().split("---")[0])  # Exclude signature
+                f.write(repo_file.read().split("---")[0])
             f.write(f"\n## {labels['folder_structure_title']}\n\n")
             with open(report_dir / 'folder_structure.md', 'r', encoding='utf-8') as folder_file:
                 f.write(folder_file.read().split("---")[0])
             f.write(f"\n## {labels['timeline_title']}\n\n")
             with open(report_dir / 'timeline.md', 'r', encoding='utf-8') as timeline_file:
                 f.write(timeline_file.read().split("---")[0])
+            f.write(f"\n## {labels['contributors_title']}\n\n")
+            with open(report_dir / 'contributors.md', 'r', encoding='utf-8') as contrib_file:
+                f.write(contrib_file.read().split("---")[0])
             f.write(signature)
 
-        print_progress(total_steps, total_steps, "✅ Analysis complete! Reports in: " + str(report_dir))
+        print_progress(total_steps, total_steps, "✅ Analysis complete! Reports in: " + str(report_dir), spinner)
         print()
 
     except Exception as e:
         print(f"\n❌ Error: {str(e)}", file=sys.stderr)
         raise
     finally:
-        print_progress(total_steps, total_steps, "🧹 Cleaning up temporary files...")
+        print_progress(total_steps, total_steps, "🧹 Cleaning up temporary files", spinner)
         print()
         safe_rmtree(temp_dir)
 
 def analyze_git_user(username, lang="EN"):
     """Analyzes a GitHub user's contributions and projects (mock implementation)."""
-    total_steps = 8
+    total_steps = 10
     step = 0
-    print_progress(step, total_steps, "📋 Starting GitHub user analysis...")
+    spinner = itertools.cycle(['|', '/', '-', '\\'])
+    print_progress(step, total_steps, "📋 Starting GitHub user analysis", spinner)
     step += 1
 
-    # Mock data (replace with GitHub API calls in production)
+    if not username or not username.strip():
+        raise ValueError("GitHub username cannot be empty.")
+
     labels = get_language_labels(lang)
     report_dir = Path('reports') / f"user_{username}"
     report_dir.mkdir(parents=True, exist_ok=True)
 
-    # Mock contributed projects
-    print_progress(step, total_steps, "🔍 Fetching contributed projects...")
+    # Mock data (replace with GitHub API calls in production)
+    print_progress(step, total_steps, "🔍 Fetching contributed projects", spinner)
     step += 1
     contrib_projects = [
-        {"name": "repo1", "lines": 500, "commits": 10, "languages": {"Python": 400, "JavaScript": 100}, "frameworks": {"Node.js": "package.json"}},
-        {"name": "repo2", "lines": 300, "commits": 5, "languages": {"Java": 300}, "frameworks": {"Maven": "pom.xml"}}
+        {"name": "repo1", "lines": 500, "commits": 10, "languages": {"Python": 400, "JavaScript": 100}, "frameworks": {"Node.js": "package.json"}, "commit_dates": ["2023-01-01", "2023-01-02"]},
+        {"name": "repo2", "lines": 300, "commits": 5, "languages": {"Java": 300}, "frameworks": {"Maven": "pom.xml"}, "commit_dates": ["2023-02-01"]}
     ]
 
-    print_progress(step, total_steps, "🔍 Fetching user projects...")
+    print_progress(step, total_steps, "🔍 Fetching user projects", spinner)
     step += 1
     user_projects = [
-        {"name": "myrepo", "lines": 1000, "commits": 20, "languages": {"Python": 1000}, "frameworks": {"Python (Pip)": "requirements.txt"}}
+        {"name": "myrepo", "lines": 1000, "commits": 20, "languages": {"Python": 1000}, "frameworks": {"Python (Pip)": "requirements.txt"}, "commit_dates": ["2023-03-01", "2023-03-02"]}
     ]
 
-    print_progress(step, total_steps, "📊 Summarizing contributions...")
+    print_progress(step, total_steps, "📊 Summarizing contributions", spinner)
     step += 1
     contrib_lines = sum(p["lines"] for p in contrib_projects)
     contrib_commits = sum(p["commits"] for p in contrib_projects)
@@ -363,7 +469,7 @@ def analyze_git_user(username, lang="EN"):
             contrib_langs[lang] += lines
         contrib_frameworks.update(p["frameworks"])
 
-    print_progress(step, total_steps, "📊 Summarizing user projects...")
+    print_progress(step, total_steps, "📊 Summarizing user projects", spinner)
     step += 1
     user_lines = sum(p["lines"] for p in user_projects)
     user_commits = sum(p["commits"] for p in user_projects)
@@ -374,19 +480,25 @@ def analyze_git_user(username, lang="EN"):
             user_langs[lang] += lines
         user_frameworks.update(p["frameworks"])
 
-    print_progress(step, total_steps, "⏳ Generating timeline...")
+    print_progress(step, total_steps, "📈 Calculating activity heatmap", spinner)
+    step += 1
+    all_dates = [d for p in contrib_projects + user_projects for d in p["commit_dates"]]
+    heatmap = defaultdict(int)
+    for date in all_dates:
+        month = date[:7]  # YYYY-MM
+        heatmap[month] += 1
+
+    print_progress(step, total_steps, "⏳ Generating timeline", spinner)
     step += 1
     timeline = [
         {"date": "2023-01-01", "action": "Contributed to repo1", "changes": "+500, -0"},
-        {"date": "2023-02-01", "action": "Created myrepo", "changes": "+1000, -0"}
+        {"date": "2023-02-01", "action": "Contributed to repo2", "changes": "+300, -0"},
+        {"date": "2023-03-01", "action": "Created myrepo", "changes": "+1000, -0"}
     ]
 
-    signature = (
-        "\n---\n"
-        f"Generated with [Q-Git](https://github.com/QLineTech/Q-Git) on {time.strftime('%Y-%m-%d %H:%M:%S')}"
-    )
+    signature = f"\n---\nGenerated with [Q-Git](https://github.com/QLineTech/Q-Git) on {time.strftime('%Y-%m-%d %H:%M:%S')}"
 
-    print_progress(step, total_steps, "📝 Generating user reports...")
+    print_progress(step, total_steps, "📝 Generating user reports", spinner)
     step += 1
     with open(report_dir / 'contributed_summary.md', 'w', encoding='utf-8') as f:
         f.write(f"# {labels['user_contrib_title']}\n\n")
@@ -429,9 +541,12 @@ def analyze_git_user(username, lang="EN"):
         f.write(f"\n## Timeline\n\n| Date | Action | Changes |\n|------|--------|---------|\n")
         for event in timeline:
             f.write(f"| {event['date']} | {event['action']} | {event['changes']} |\n")
+        f.write(f"\n## {labels['user_activity_title']}\n\n| {labels['activity_headers'][0]} | {labels['activity_headers'][1]} |\n|-------|--------|\n")
+        for month, count in sorted(heatmap.items()):
+            f.write(f"| {month} | {count} |\n")
         f.write(signature)
 
-    print_progress(total_steps, total_steps, "✅ User analysis complete! Reports in: " + str(report_dir))
+    print_progress(total_steps, total_steps, "✅ User analysis complete! Reports in: " + str(report_dir), spinner)
     print()
 
 def show_menu(current_lang):
@@ -474,11 +589,17 @@ if __name__ == "__main__":
 
         elif choice == "2":
             repo_url = input("Enter the GitHub repo URL: ").strip()
-            analyze_repo(repo_url, lang)
+            if repo_url:
+                analyze_repo(repo_url, lang)
+            else:
+                print("❌ Repository URL cannot be empty.")
 
         elif choice == "3":
             username = input("Enter the GitHub username: ").strip()
-            analyze_git_user(username, lang)
+            if username:
+                analyze_git_user(username, lang)
+            else:
+                print("❌ GitHub username cannot be empty.")
 
         elif choice == "4":
             print("👋 Exiting Q-Git. Goodbye!")
