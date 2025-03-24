@@ -106,4 +106,3 @@ MIT License. See [LICENSE](LICENSE) for details.
 
 **TR:**  
 MIT Lisansı. Detaylar için [LICENSE](LICENSE) dosyasına bakın.  
-```
