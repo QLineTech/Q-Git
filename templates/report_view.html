@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ filename }} - {{ repo_name }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>{{ filename }} - {{ repo_name }}</h1>
+    <pre>{{ content }}</pre>
+    <a href="{{ url_for('reports') }}">Back to Reports</a> |
+    <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+</html>

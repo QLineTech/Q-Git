@@ -1,1 +1,6 @@
 gitpython
+reportlab
+markdown
+pdfkit
+aiofiles
+flask

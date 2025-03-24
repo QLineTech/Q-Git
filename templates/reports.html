@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generated Reports</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        ul { list-style-type: none; }
+    </style>
+</head>
+<body>
+    <h1>Generated Reports</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <p class="{{ category }}">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% if reports %}
+        {% for repo in reports %}
+            <h2>{{ repo.name }}</h2>
+            <ul>
+                {% for file in repo.files %}
+                    <li><a href="{{ url_for('view_report', repo_name=repo.name, filename=file) }}">{{ file }}</a></li>
+                {% endfor %}
+            </ul>
+        {% endfor %}
+    {% else %}
+        <p>No reports available.</p>
+    {% endif %}
+
+    <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Analysis Progress</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .progress-bar { width: 100%; height: 20px; background: #ddd; }
+        .progress-fill { height: 100%; background: #4CAF50; width: 0%; }
+    </style>
+</head>
+<body>
+    <h1>Analysis Progress</h1>
+    <p>Status: {{ progress.status }}</p>
+    <p>{{ progress.message }}</p>
+    <div class="progress-bar">
+        <div class="progress-fill" style="width: {{ progress.percentage }}%;"></div>
+    </div>
+    <p>{{ progress.percentage }}%</p>
+
+    {% if progress.status == 'Complete' %}
+        <a href="{{ url_for('reports') }}">View Reports</a> |
+    {% endif %}
+    <a href="{{ url_for('index') }}">Back to Home</a>
+
+    <script>
+        // Refresh page every 2 seconds if analysis is running
+        if ("{{ progress.status }}" === "Running") {
+            setTimeout(function() { location.reload(); }, 2000);
+        }
+    </script>
+</body>
+</html>

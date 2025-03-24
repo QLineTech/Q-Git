@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Q-Git Web Interface</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-container { max-width: 600px; margin: 0 auto; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Q-Git Web Interface</h1>
+        <p>Analyze GitHub repositories or users with ease!</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p class="{{ category }}">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('analyze') }}">
+            <label for="analysis_type">Analysis Type:</label><br>
+            <select name="analysis_type" id="analysis_type" onchange="toggleInput()">
+                <option value="repo">Analyze Repository</option>
+                <option value="user">Analyze Git User</option>
+            </select><br><br>
+
+            <div id="repo_input">
+                <label for="repo_url">GitHub Repository URL:</label><br>
+                <input type="text" name="repo_url" id="repo_url" style="width: 100%;"><br><br>
+            </div>
+            <div id="user_input" style="display: none;">
+                <label for="username">GitHub Username:</label><br>
+                <input type="text" name="username" id="username" style="width: 100%;"><br><br>
+            </div>
+
+            <label for="language">Report Language:</label><br>
+            <select name="language" id="language">
+                {% for lang in langs %}
+                    <option value="{{ lang }}" {% if lang == 'EN' %}selected{% endif %}>{{ lang }}</option>
+                {% endfor %}
+            </select><br><br>
+
+            <input type="submit" value="Start Analysis">
+        </form>
+    </div>
+
+    <script>
+        function toggleInput() {
+            var type = document.getElementById('analysis_type').value;
+            document.getElementById('repo_input').style.display = type === 'repo' ? 'block' : 'none';
+            document.getElementById('user_input').style.display = type === 'user' ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>
