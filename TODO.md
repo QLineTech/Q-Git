@@ -12,3 +12,6 @@
   - if enabled while running repo analysis and discovering contributers parallelly do user analysis for contributers.
 
 - Improve performance and speed by running tasks async parallelly together.
+
+
+- in user analysis, check the commit history map. 
