@@ -44,7 +44,7 @@ def print_tree(node, level=0):
 
     for dir_name in dir_names:
         subnode = node['dirs'][dir_name]
-        lines.append(f"{'  ' * level}- **{dir_name}/** (Lines: {subnode['lines']}, Commits: {len(subnode['commits'])})")
+        lines.append(f"{'  ' * level}- {dir_name}/ (Lines: {subnode['lines']}, Commits: {len(subnode['commits'])})")
         lines.extend(print_tree(subnode, level + 1))
 
     for file_name in file_names:
@@ -365,9 +365,9 @@ def analyze_repo(repo_url, lang="EN"):
 
         with open(report_dir / 'folder_structure.md', 'w', encoding='utf-8') as f:
             f.write(f"# {labels['folder_structure_title']}\n\n")
-            f.write("```markdown\n")
+            f.write("\n")
             f.write("\n".join(print_tree(tree)))
-            f.write("\n```\n")
+            f.write("\n")
             f.write(signature)
 
         with open(report_dir / 'timeline.md', 'w', encoding='utf-8') as f:
